@@ -43,32 +43,144 @@ describe("Testing the server", () => {
 
   // IMPLEMENT TESTS FOR USERS
 
+  const michael = {
+    name: "Michael",
+    email: "m.scott@dundermifflin.com",
+    password: "holly",
+  };
+
+  const dwight = {
+    name: "Dwight",
+    email: "d.schrute@dundermifflin.com",
+    password: "beets",
+  };
+
+  const jim = {
+    name: "Jim",
+    email: "j.halpert@dundermifflin.com",
+    password: "pamela",
+  };
+
+  const pam = {
+    name: "Pam",
+    email: "p.beasley@dundermifflin.com",
+    password: "arty",
+  };
+
+  const angela = {
+    name: "Angela",
+    email: "a.martin@dundermifflin.com",
+    password: "sprinkles",
+  };
+
+  const ryan = {
+    name: "Ryan",
+    email: "info@WUPHF.com",
+    password: "me",
+  };
+
   // GET /users
-  // Search users by username or email.
+  it("should test that GET /users (1) returns correct length array, (2) refresh tokens undefined", async () => {
+    await request.post("/users/account").send({
+      name: "TestUser",
+      email: "joe.blo1@gmail.com",
+      password: "password",
+    });
+    await request.post("/users/account").send({
+      name: "TestUser",
+      email: "joe.blo2@gmail.com",
+      password: "password",
+    });
+    const response = await request.get("/users?name=TestUser");
+    expect(response.body.users[0].refreshToken).not.toBeDefined();
+    expect(response.body.users[1].refreshToken).not.toBeDefined();
+    expect(response.body.users.length).toEqual(2);
+  });
 
   // GET /users/me
-  // Returns your user data
+  it("should test that GET /users/me returns (1) user corresponding to _id, (2) password field undefined, (3) refresh token defined", async () => {
+    const newAccount = await request.post("/users/account").send(michael);
+    const { _id, accessToken } = newAccount.body;
+    const response = await request
+      .get("/users/me")
+      .set({ Authorization: `Bearer ${accessToken}` });
+    expect(response.body._id).toEqual(_id);
+    expect(response.body.password).not.toBeDefined();
+    expect(response.body.refreshToken).toBeDefined();
+  });
 
-  // PUT /users/me
-  // Changes your user data
+  it("should test that GET /users/me returns 500 if wrong access token provided", async () => {
+    const response = await request
+      .get("/users/me")
+      .set({ Authorization: `Bearer IsTh1sAFakeAccessTok3n?` });
+    expect(response.status).toBe(500); // should it be a different error code
+  });
 
-  // POST /users/me/avatar
-  // Changes profile avatar
+  it("should test that PUT /users/me returns updated user with new name", async () => {
+    const newAccount = await request.post("/users/account").send(dwight);
+    const { accessToken } = newAccount.body;
+    const fakeName = "Dwigt Scrott";
+    const response = await request
+      .put("/users/me")
+      .send({ name: fakeName })
+      .set({ Authorization: `Bearer ${accessToken}` });
+    expect(response.body.name).toEqual(fakeName);
+  });
 
-  // GET /users/{id}
-  // Returns a single user
+  // it("should test that POST /users/me/avatar returns avatar with cloudinary string", async () => {
+  //   const newAccount = await request.post("/users/account").send(pam).set({});
+  //  HOW TO MOCK MULTER IN SUPERTEST??
+  // })
 
-  // POST /users/account
-  // Registration
+  it("should test that GET /users/{id} returns (1) user with corresponding _id, (2) password field undefined, (3) refresh token undefined", async () => {
+    const michaelAccount = await request.post("/users/account").send(michael);
+    const schruteAccount = await request.post("/users/account").send(dwight);
+    const schruteId = schruteAccount.body._id;
+    const { accessToken } = michaelAccount.body;
+    const response = await request
+      .get("/users/" + schruteId)
+      .set({ Authorization: `Bearer ${accessToken}` });
+    expect(response.body._id).toEqual(schruteId);
+    expect(response.body.password).not.toBeDefined();
+    expect(response.body.refreshToken).not.toBeDefined();
+  });
 
-  // POST /users/session
-  // Login
+  it("should test that POST /users/account returns 422 if email duplicated", async () => {
+    await request.post("/users/account").send(dwight);
+    const response = await request.post("/users/account").send({
+      name: "Creed Bratton",
+      email: "d.schrute@dundermifflin.com",
+      password: "scranton",
+    });
+    expect(response.status).toBe(422);
+  });
 
-  // DELETE /users/session
-  // Logout. If implemented with cookies, should set an empty cookie. Otherwise it should just remove the refresh token from the DB.
+  it("should test that POST /users/session returns 401 if wrong credentials supplied", async () => {
+    await request.post("/users/account").send(ryan);
+    const response = await request
+      .post("/users/session")
+      .send({ email: "info@WUPHF.com", password: "wr0ngPa5sword" });
+    expect(response.status).toBe(401); // ❗ FAILED, actually getting 500
+  });
 
-  // POST /users/session/refresh
-  // Refresh session
+  it("should test that DELETE /users/session returns 200", async () => {
+    const newAccount = await request.post("/users/account").send(angela);
+    const { accessToken } = newAccount.body;
+    console.log(accessToken);
+    const response = await request
+      .delete("/users/session")
+      .set({ Authorization: `Bearer ${accessToken}` });
+    expect(response.status).toBe(200);
+  });
+
+  it("should test that POST /users/session/refresh returns 200 if refresh token valid", async () => {
+    const newAccount = await request.post("/users/account").send(jim);
+    const { refreshToken } = newAccount.body;
+    const response = await request
+      .post("/users/session/refresh")
+      .send({ actualRefreshToken: refreshToken });
+    expect(response.status).toBe(200);
+  });
 
   // *********** //
 

@@ -19,6 +19,17 @@ const userSchema = new Schema(
   { timestamps: true }
 )
 
+userSchema.static("findUsers", async function(query) {
+    const total = await this.countDocuments(query.criteria)
+    const users = await this.find(query.criteria, query.options.fields)
+        .limit(query.options.limit)
+        .skip(query.options.skip)
+        .sort(query.options.sort)
+    const safeUsers = users
+    
+    return { total, users }
+})
+
 userSchema.pre("save", async function (next) {
   const newUser = this;
   const plainPW = newUser.password;
