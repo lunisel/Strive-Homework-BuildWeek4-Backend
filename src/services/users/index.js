@@ -26,6 +26,7 @@
 // Refresh session
 
 import express from "express";
+import createHttpError from "http-errors";
 import { JWTAuthMiddleware } from "../../auth/index.js";
 import { generateTokens, refreshTokens } from "../../auth/tools.js";
 import UserModel from "./schema.js";
@@ -43,13 +44,17 @@ userRouter.get("/", async (req, res, next) => {
 // Registration
 userRouter.post("/account", async (req, res, next) => {
   try {
-    console.log("REGISTER USER🤸");
     const newUser = new UserModel(req.body);
-    const { _id } = await newUser.save();
-    if (newUser) {
-      console.log("NEW USER SAVED🙌");
-      const { accessToken, refreshToken } = await generateTokens(newUser);
-      res.status(201).send({ _id, accessToken, refreshToken });
+    const users = await UserModel.find();
+    if (users.findIndex((u) => u.email === newUser.email) === -1) {
+      const { _id } = await newUser.save();
+      if (newUser) {
+        console.log("NEW USER SAVED🙌");
+        const { accessToken, refreshToken } = await generateTokens(newUser);
+        res.status(201).send({ _id, accessToken, refreshToken });
+      }
+    } else {
+      res.status(422).send({ error: "Duplicate emails cannot be processed" });
     }
   } catch (err) {
     next(err);
@@ -59,7 +64,15 @@ userRouter.post("/account", async (req, res, next) => {
 // Login
 userRouter.post("/session", async (req, res, next) => {
   try {
-    console.log("Hi Users👋");
+    const { email, password } = req.body;
+    const user = await UserModel.checkCredentials(email, password);
+    if (user) {
+      console.log("USER LOGGED IN🙌");
+      const { accessToken, refreshToken } = await generateTokens(user);
+      res.send({ accessToken, refreshToken });
+    } else {
+      next(createHttpError(401, "Something is wrong with your credentials"));
+    }
   } catch (err) {
     next(err);
   }
