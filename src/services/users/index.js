@@ -13,18 +13,6 @@
 // GET /users/{id}
 // Returns a single user
 
-// POST /users/account
-// Registration
-
-// POST /users/session
-// Login
-
-// DELETE /users/session
-// Logout. If implemented with cookies, should set an empty cookie. Otherwise it should just remove the refresh token from the DB.
-
-// POST /users/session/refresh
-// Refresh session
-
 import express from "express";
 import createHttpError from "http-errors";
 import { JWTAuthMiddleware } from "../../auth/index.js";
@@ -49,7 +37,7 @@ userRouter.post("/account", async (req, res, next) => {
     if (users.findIndex((u) => u.email === newUser.email) === -1) {
       const { _id } = await newUser.save();
       console.log("NEW USER SAVED🙌");
-      // ✏️ Testing:
+      // ✏️ Test endpoint returns 422 if Email is a Duplicate
       if (newUser) {
         const { accessToken, refreshToken } = await generateTokens(newUser);
         res.status(201).send({ _id, accessToken, refreshToken });
@@ -71,7 +59,7 @@ userRouter.post("/session", async (req, res, next) => {
       const { accessToken, refreshToken } = await generateTokens(user);
       res.send({ accessToken, refreshToken });
       console.log("USER LOGGED IN🙌");
-      // ✏️ Testing:
+      // ✏️ Test endpoint returns 401 if wrong credentials supplied
     } else {
       next(createHttpError(401, "☠️ Something is wrong with your credentials"));
     }
@@ -88,7 +76,7 @@ userRouter.delete("/session", JWTAuthMiddleware, async (req, res, next) => {
     await req.user.save();
     res.send();
     console.log("USER LOGGED OUT🙌");
-    // ✏️ Testing:
+    // ✏️ Test endpoint nullifies refreshToken saved in DB
   } catch (err) {
     next(err);
   }
@@ -103,7 +91,7 @@ userRouter.post("/session/refresh", async (req, res, next) => {
     );
     res.send({ accessToken, refreshToken });
     console.log("SESSION REFRESHED🙌");
-    // ✏️ Testing: returns 401 if refresh token not valid
+    // ✏️ Test endpoint returns 401 if refresh token not valid
   } catch (err) {
     next(err);
   }
