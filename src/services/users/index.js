@@ -71,17 +71,21 @@ userRouter.post("/session", async (req, res, next) => {
       const { accessToken, refreshToken } = await generateTokens(user);
       res.send({ accessToken, refreshToken });
     } else {
-      next(createHttpError(401, "Something is wrong with your credentials"));
+      next(createHttpError(401, "☠️ Something is wrong with your credentials"));
     }
   } catch (err) {
     next(err);
   }
 });
 
-// Logout. If implemented with cookies, should set an empty cookie. Otherwise it should just remove the refresh token from the DB.
-userRouter.delete("/session", async (req, res, next) => {
+// Logout. 
+// If implemented with cookies, should set an empty cookie. Otherwise it should just remove the refresh token from the DB.
+userRouter.delete("/session", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    console.log("Hi Users👋");
+    console.log("USER LOGGED OUT🙌");
+    req.user.refreshToken = null;
+    await req.user.save();
+    res.send();
   } catch (err) {
     next(err);
   }
