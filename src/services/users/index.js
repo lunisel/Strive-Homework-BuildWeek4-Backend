@@ -26,11 +26,56 @@
 // Refresh session
 
 import express from "express";
-import userModel from "./schema.js"
+import { JWTAuthMiddleware } from "../../auth/index.js";
+import { generateTokens, refreshTokens } from "../../auth/tools.js";
+import UserModel from "./schema.js";
 
 const userRouter = express.Router();
 
 userRouter.get("/", async (req, res, next) => {
+  try {
+    console.log("Hi Users👋");
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Registration
+userRouter.post("/account", async (req, res, next) => {
+  try {
+    console.log("REGISTER USER🤸");
+    const newUser = new UserModel(req.body);
+    const { _id } = await newUser.save();
+    if (newUser) {
+      console.log("NEW USER SAVED🙌");
+      const { accessToken, refreshToken } = await generateTokens(newUser);
+      res.status(201).send({ _id, accessToken, refreshToken });
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Login
+userRouter.post("/session", async (req, res, next) => {
+  try {
+    console.log("Hi Users👋");
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Logout. If implemented with cookies, should set an empty cookie. Otherwise it should just remove the refresh token from the DB.
+userRouter.delete("/session", async (req, res, next) => {
+  try {
+    console.log("Hi Users👋");
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Refresh session
+userRouter.post("/session/refresh", async (req, res, next) => {
   try {
     console.log("Hi Users👋");
   } catch (err) {
