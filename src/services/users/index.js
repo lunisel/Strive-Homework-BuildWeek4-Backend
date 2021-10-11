@@ -13,37 +13,20 @@
 // POST /users/me/avatar
 // Changes profile avatar
 
-// POST /users/account
-// Registration
+// GET /users/{id}
+// Returns a single user
 
-// POST /users/session
-// Login
+import express from "express";
+import createHttpError from "http-errors";
+import { JWTAuthMiddleware } from "../../auth/index.js";
+import { generateTokens, refreshTokens } from "../../auth/tools.js";
+import UserModel from "./schema.js";
 
-// DELETE /users/session
-// Logout. If implemented with cookies, should set an empty cookie. Otherwise it should just remove the refresh token from the DB.
+const userRouter = express.Router();
 
-// POST /users/session/refresh
-// Refresh session
-
-import express from 'express'
-import userModel from './schema.js'
-import createHttpError from 'http-errors'
-
-const userRouter = express.Router()
-
-userRouter.get('/', async (req, res, next) => {
+userRouter.get('/me', JWTAuthMiddleware, async (req, res, next) => {
   try {
-    //console.log("Hi Users👋")
-    const users = await userModel.find()
-    res.send(users)
-  } catch (err) {
-    next(err)
-  }
-})
-
-userRouter.get('/me', async (req, res, next) => {
-  try {
-    res.send(req.user) //WHERE IS THIS USER COMNMING FROM???
+    res.send(req.user)
   } catch (error) {
     next(error)
   }
@@ -52,7 +35,7 @@ userRouter.get('/me', async (req, res, next) => {
 userRouter.get('/:userId', async (req, res, next) => {
   try {
     const userId = req.params.userId
-    const user = await userModel.findById(userId)
+    const user = await UserModel.findById(userId)
     if (user) {
       res.send(user)
     } else {
@@ -63,20 +46,20 @@ userRouter.get('/:userId', async (req, res, next) => {
   }
 })
 
-userRouter.put('/me', async (req, res, next) => {
+userRouter.put('/me', JWTAuthMiddleware, async (req, res, next) => {
   try {
-    req.user.name = 'Whatever' // modify req.user with the fields coming from req.body
+    // req.user.name = 'Whatever' // modify req.user with the fields coming from req.body
     await req.user.save()
-
     res.send()
   } catch (error) {
     next(error)
   }
 })
 
+// users to be able to edit their own user
 userRouter.put('/:userId', async (req, res, next) => {
   const userId = req.params.userId
-  const modifiedUser = await userModel.findByIdAndUpdate(userId, req.body, {
+  const modifiedUser = await UserModel.findByIdAndUpdate(userId, req.body, {
     new: true, // returns the modified user
   })
   if (modifiedUser) {
@@ -85,4 +68,73 @@ userRouter.put('/:userId', async (req, res, next) => {
     next(createHttpError(404, `👻 User with id ${userId} not found`))
   }
 })
+
+// Registration
+userRouter.post("/account", async (req, res, next) => {
+  try {
+    const newUser = new UserModel(req.body);
+    const users = await UserModel.find();
+    if (users.findIndex((u) => u.email === newUser.email) === -1) {
+      const { _id } = await newUser.save();
+      console.log("NEW USER SAVED🙌");
+      // ✏️ Test endpoint returns 422 if Email is a Duplicate
+      if (newUser) {
+        const { accessToken, refreshToken } = await generateTokens(newUser);
+        res.status(201).send({ _id, accessToken, refreshToken });
+      }
+    } else {
+      res.status(422).send({ error: "Duplicate emails cannot be processed" });
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Login
+userRouter.post("/session", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await UserModel.checkCredentials(email, password);
+    if (user) {
+      const { accessToken, refreshToken } = await generateTokens(user);
+      res.send({ accessToken, refreshToken });
+      console.log("USER LOGGED IN🙌");
+      // ✏️ Test endpoint returns 401 if wrong credentials supplied
+    } else {
+      next(createHttpError(401, "☠️ Something is wrong with your credentials"));
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Logout.
+// If implemented with cookies, should set an empty cookie. Otherwise it should just remove the refresh token from the DB.
+userRouter.delete("/session", JWTAuthMiddleware, async (req, res, next) => {
+  try {
+    req.user.refreshToken = null;
+    await req.user.save();
+    res.send();
+    console.log("USER LOGGED OUT🙌");
+    // ✏️ Test endpoint nullifies refreshToken saved in DB
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Refresh session
+userRouter.post("/session/refresh", async (req, res, next) => {
+  try {
+    const { actualRefreshToken } = req.body;
+    const { accessToken, refreshToken } = await refreshTokens(
+      actualRefreshToken
+    );
+    res.send({ accessToken, refreshToken });
+    console.log("SESSION REFRESHED🙌");
+    // ✏️ Test endpoint returns 401 if refresh token not valid
+  } catch (err) {
+    next(err)
+  }
+})
+
 export default userRouter
