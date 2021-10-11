@@ -55,8 +55,8 @@ userRouter.get('/:userId', async (req, res, next) => {
     const user = await userModel.findById(userId)
     if (user) {
       res.send(user)
-    }else{
-      next(createHttpError(404, `User id ${userId} not found`))
+    } else {
+      next(createHttpError(404, `👻 User id ${userId} not found`))
     }
   } catch (error) {
     next(error)
@@ -71,6 +71,18 @@ userRouter.put('/me', async (req, res, next) => {
     res.send()
   } catch (error) {
     next(error)
+  }
+})
+
+userRouter.put('/userId', async (req, res, next) => {
+  const userId = req.params.userId
+  const modifedUser = await userModel.findByIdAndUpdate(userId, req.body, {
+    new: true, // returns the modified user
+  })
+  if (modifiedUser) {
+    res.send(modifiedUser)
+  } else {
+    next(createHttpError(404, `👻 User with id ${userId} not found`))
   }
 })
 export default userRouter
