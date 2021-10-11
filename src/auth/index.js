@@ -19,10 +19,10 @@ export const JWTAuthMiddleware = async (req, res, next) => {
         req.user = user;
         next();
       } else {
-        next(createHttpError(404, "User not found!"));
+        next(createHttpError(404, "☠️ User not found!"));
       }
     } catch (err) {
-      next(createHttpError(401, "Token not valid"));
+      next(createHttpError(401, "☠️ Token not valid"));
     }
   }
 };

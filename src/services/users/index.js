@@ -48,8 +48,9 @@ userRouter.post("/account", async (req, res, next) => {
     const users = await UserModel.find();
     if (users.findIndex((u) => u.email === newUser.email) === -1) {
       const { _id } = await newUser.save();
+      console.log("NEW USER SAVED🙌");
+      // ✏️ Testing:
       if (newUser) {
-        console.log("NEW USER SAVED🙌");
         const { accessToken, refreshToken } = await generateTokens(newUser);
         res.status(201).send({ _id, accessToken, refreshToken });
       }
@@ -67,9 +68,10 @@ userRouter.post("/session", async (req, res, next) => {
     const { email, password } = req.body;
     const user = await UserModel.checkCredentials(email, password);
     if (user) {
-      console.log("USER LOGGED IN🙌");
       const { accessToken, refreshToken } = await generateTokens(user);
       res.send({ accessToken, refreshToken });
+      console.log("USER LOGGED IN🙌");
+      // ✏️ Testing:
     } else {
       next(createHttpError(401, "☠️ Something is wrong with your credentials"));
     }
@@ -78,14 +80,15 @@ userRouter.post("/session", async (req, res, next) => {
   }
 });
 
-// Logout. 
+// Logout.
 // If implemented with cookies, should set an empty cookie. Otherwise it should just remove the refresh token from the DB.
 userRouter.delete("/session", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    console.log("USER LOGGED OUT🙌");
     req.user.refreshToken = null;
     await req.user.save();
     res.send();
+    console.log("USER LOGGED OUT🙌");
+    // ✏️ Testing:
   } catch (err) {
     next(err);
   }
@@ -94,7 +97,13 @@ userRouter.delete("/session", JWTAuthMiddleware, async (req, res, next) => {
 // Refresh session
 userRouter.post("/session/refresh", async (req, res, next) => {
   try {
-    console.log("Hi Users👋");
+    const { actualRefreshToken } = req.body;
+    const { accessToken, refreshToken } = await refreshTokens(
+      actualRefreshToken
+    );
+    res.send({ accessToken, refreshToken });
+    console.log("SESSION REFRESHED🙌");
+    // ✏️ Testing: returns 401 if refresh token not valid
   } catch (err) {
     next(err);
   }
