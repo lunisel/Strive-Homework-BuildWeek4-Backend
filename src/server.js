@@ -1,10 +1,15 @@
-import express from "express";
-import cors from "cors";
-import listEndpoints from "express-list-endpoints";
-import userRouter from "./services/users/index.js";
-import chatRouter from "./services/chat/index.js";
+import express from 'express'
+import cors from 'cors'
+import listEndpoints from 'express-list-endpoints'
+import userRouter from './services/users/index.js'
+import chatRouter from './services/chat/index.js'
+import {
+  notFoundHandler,
+  badRequestHandler,
+  genericErrorHandler,
+} from './errorHandlers.js'
 
-const server = express();
+const server = express()
 
 // 🎗️ Use npm run dev to utilise
 
@@ -12,19 +17,19 @@ const server = express();
 
 // MIDDLEWARES GO HERE
 
-server.use(cors());
-server.use(express.json());
+server.use(cors())
+server.use(express.json())
 
 // *********** //
 
-server.get("/test", (req, res) => {
-  res.status(200).send({ message: "Test success" });
-});
+server.get('/test', (req, res) => {
+  res.status(200).send({ message: 'Test success' })
+})
 
 // *********** //
 
-server.use("/users", userRouter);
-server.use("/chats", chatRouter);
+server.use('/users', userRouter)
+server.use('/chats', chatRouter)
 
 // USER, CHAT ROUTERS GO HERE
 
@@ -33,9 +38,11 @@ server.use("/chats", chatRouter);
 // *********** //
 
 // ERROR HANDLERS GO HERE
-
+server.use(notFoundHandler)
+server.use(badRequestHandler)
+server.use(genericErrorHandler)
 // *********** //
 
-console.table(listEndpoints(server));
+console.table(listEndpoints(server))
 
-export default server;
+export default server

@@ -1,6 +1,8 @@
 // GET /users
 // Search users by username or email.
 
+
+
 // GET /users/me
 // Returns your user data
 
@@ -25,17 +27,18 @@
 // POST /users/session/refresh
 // Refresh session
 
-import express from "express";
-import userModel from "./schema.js"
+import express from 'express'
+import userModel from './schema.js'
 
-const userRouter = express.Router();
+const userRouter = express.Router()
 
-userRouter.get("/", async (req, res, next) => {
+userRouter.get('/', async (req, res, next) => {
   try {
-    console.log("Hi Users👋");
+    //console.log("Hi Users👋")
+    const users = await userModel.find()
   } catch (err) {
-    next(err);
+    next(err)
   }
-});
+})
 
-export default userRouter;
+export default userRouter
