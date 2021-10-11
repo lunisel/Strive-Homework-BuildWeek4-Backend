@@ -1,21 +1,3 @@
-// GET /users
-// Search users by username or email.
-
-// GET /users/me
-// Returns your user data
-
-// GET /users/{id}
-// Returns a single user
-
-// PUT /users/me
-// Changes your user data
-
-// POST /users/me/avatar
-// Changes profile avatar
-
-// GET /users/{id}
-// Returns a single user
-
 import express from "express";
 import createHttpError from "http-errors";
 import { JWTAuthMiddleware } from "../../auth/index.js";
@@ -24,50 +6,71 @@ import UserModel from "./schema.js";
 
 const userRouter = express.Router();
 
-userRouter.get('/me', JWTAuthMiddleware, async (req, res, next) => {
-  try {
-    res.send(req.user)
-  } catch (error) {
-    next(error)
-  }
-})
+// GET /users
+// Search users by username or email.
 
-userRouter.get('/:userId', async (req, res, next) => {
+// Returns your user data
+userRouter.get("/me", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const userId = req.params.userId
-    const user = await UserModel.findById(userId)
+    res.send(req.user);
+    console.log("USER SENT🙌");
+    // ✏️ Test endpoint returns error if Access Token incorrect
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Changes your user data
+userRouter.put("/me", JWTAuthMiddleware, async (req, res, next) => {
+  try {
+    const filter = { _id: req.user._id };
+    const update = { ...req.body };
+    const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+      returnOriginal: false,
+    });
+    await updatedUser.save();
+    res.send(updatedUser);
+    console.log("USER EDIT SUCCESSFUL🙌");
+    // ✏️ Test endpoint returns new name if name sent in body
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /users/me/avatar
+// Changes profile avatar
+
+// Returns a single user
+userRouter.get("/:userId", async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    const user = await UserModel.findById(userId);
     if (user) {
-      res.send(user)
+      res.send(user);
+      console.log("FOUND USER BY ID🙌");
+      // ✏️ Test endpoint returns user by id if id matches req.params.id
     } else {
-      next(createHttpError(404, `👻 User id ${userId} not found`))
+      next(createHttpError(404, `👻 User id ${userId} not found`));
     }
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
-userRouter.put('/me', JWTAuthMiddleware, async (req, res, next) => {
-  try {
-    // req.user.name = 'Whatever' // modify req.user with the fields coming from req.body
-    await req.user.save()
-    res.send()
-  } catch (error) {
-    next(error)
-  }
-})
-
-// users to be able to edit their own user
-userRouter.put('/:userId', async (req, res, next) => {
-  const userId = req.params.userId
-  const modifiedUser = await UserModel.findByIdAndUpdate(userId, req.body, {
-    new: true, // returns the modified user
-  })
-  if (modifiedUser) {
-    res.send(modifiedUser)
-  } else {
-    next(createHttpError(404, `👻 User with id ${userId} not found`))
-  }
-})
+// actually dont need this
+// SHOULD BE: /me
+// Changes your user data
+// userRouter.put('/:userId', async (req, res, next) => {
+//   const userId = req.params.userId
+//   const modifiedUser = await UserModel.findByIdAndUpdate(userId, req.body, {
+//     new: true, // returns the modified user
+//   })
+//   if (modifiedUser) {
+//     res.send(modifiedUser)
+//   } else {
+//     next(createHttpError(404, `👻 User with id ${userId} not found`))
+//   }
+// })
 
 // Registration
 userRouter.post("/account", async (req, res, next) => {
@@ -133,8 +136,8 @@ userRouter.post("/session/refresh", async (req, res, next) => {
     console.log("SESSION REFRESHED🙌");
     // ✏️ Test endpoint returns 401 if refresh token not valid
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-export default userRouter
+export default userRouter;
