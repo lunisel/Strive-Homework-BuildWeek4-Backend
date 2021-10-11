@@ -3,9 +3,9 @@
 // email: string
 // avatar?: string
 
-import mongoose from "mongoose";
+import mongoose from 'mongoose'
 
-const { Schema, model } = mongoose; 
+const { Schema, model } = mongoose
 
 const userSchema = new Schema(
   {
@@ -15,6 +15,6 @@ const userSchema = new Schema(
     refreshToken: { type: String },
   },
   { timestamps: true }
-);
+)
 
-export default model("User", userSchema);
+export default model('User', userSchema)

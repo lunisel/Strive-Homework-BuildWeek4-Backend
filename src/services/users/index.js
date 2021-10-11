@@ -1,19 +1,17 @@
 // GET /users
 // Search users by username or email.
 
-
-
 // GET /users/me
 // Returns your user data
+
+// GET /users/{id}
+// Returns a single user
 
 // PUT /users/me
 // Changes your user data
 
 // POST /users/me/avatar
 // Changes profile avatar
-
-// GET /users/{id}
-// Returns a single user
 
 // POST /users/account
 // Registration
@@ -29,6 +27,7 @@
 
 import express from 'express'
 import userModel from './schema.js'
+import createHttpError from 'http-errors'
 
 const userRouter = express.Router()
 
@@ -36,9 +35,42 @@ userRouter.get('/', async (req, res, next) => {
   try {
     //console.log("Hi Users👋")
     const users = await userModel.find()
+    res.send(users)
   } catch (err) {
     next(err)
   }
 })
 
+userRouter.get('/me', async (req, res, next) => {
+  try {
+    res.send(req.user) //WHERE IS THIS USER COMNMING FROM???
+  } catch (error) {
+    next(error)
+  }
+})
+
+userRouter.get('/:userId', async (req, res, next) => {
+  try {
+    const userId = req.params.userId
+    const user = await userModel.findById(userId)
+    if (user) {
+      res.send(user)
+    }else{
+      next(createHttpError(404, `User id ${userId} not found`))
+    }
+  } catch (error) {
+    next(error)
+  }
+})
+
+userRouter.put('/me', async (req, res, next) => {
+  try {
+    req.user.name = 'Whatever' // modify req.user with the fields coming from req.body
+    await req.user.save()
+
+    res.send()
+  } catch (error) {
+    next(error)
+  }
+})
 export default userRouter
