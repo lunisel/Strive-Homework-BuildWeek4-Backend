@@ -26,6 +26,7 @@
 // Refresh session
 
 import express from "express";
+import userModel from "./schema.js"
 
 const userRouter = express.Router();
 
