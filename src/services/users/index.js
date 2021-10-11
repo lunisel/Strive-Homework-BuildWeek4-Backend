@@ -74,9 +74,9 @@ userRouter.put('/me', async (req, res, next) => {
   }
 })
 
-userRouter.put('/userId', async (req, res, next) => {
+userRouter.put('/:userId', async (req, res, next) => {
   const userId = req.params.userId
-  const modifedUser = await userModel.findByIdAndUpdate(userId, req.body, {
+  const modifiedUser = await userModel.findByIdAndUpdate(userId, req.body, {
     new: true, // returns the modified user
   })
   if (modifiedUser) {
