@@ -21,14 +21,6 @@ import UserModel from "./schema.js";
 
 const userRouter = express.Router();
 
-userRouter.get("/", async (req, res, next) => {
-  try {
-    console.log("Hi Users👋");
-  } catch (err) {
-    next(err);
-  }
-});
-
 // Registration
 userRouter.post("/account", async (req, res, next) => {
   try {
