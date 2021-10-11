@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watchAll",
+    "dev": "nodemon -r dotenv/config ./src",
+    "start": "node ./src"
   },
   "repository": {
     "type": "git",
@@ -16,5 +20,25 @@
   "bugs": {
     "url": "https://github.com/lunisel/Strive-Homework-BuildWeek4/issues"
   },
-  "homepage": "https://github.com/lunisel/Strive-Homework-BuildWeek4#readme"
+  "homepage": "https://github.com/lunisel/Strive-Homework-BuildWeek4#readme",
+  "dependencies": {
+    "atob": "^2.1.2",
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "express": "^4.17.1",
+    "express-list-endpoints": "^6.0.0",
+    "express-validator": "^6.12.2",
+    "http-errors": "^1.8.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.0.10",
+    "passport": "^0.5.0",
+    "passport-google-oauth20": "^2.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^10.0.0",
+    "jest": "^27.2.5",
+    "nodemon": "^2.0.13",
+    "supertest": "^6.1.6"
+  }
 }
