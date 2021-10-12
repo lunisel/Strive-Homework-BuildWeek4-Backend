@@ -3,7 +3,7 @@
 // email: string
 // avatar?: string
 
-import mongoose from "mongoose";
+import mongoose from "mongoose"; 
 import bcrypt from "bcrypt";
 
 const { Schema, model } = mongoose;
