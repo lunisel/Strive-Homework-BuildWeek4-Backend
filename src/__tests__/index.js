@@ -79,7 +79,12 @@ describe("Testing the server", () => {
     password: "me",
   };
 
-  // GET /users
+  const creed = {
+    name: "Creed",
+    email: "c.bratton@dundermifflin.com",
+    password: "chairs",
+  };
+
   it("should test that GET /users (1) returns correct length array, (2) refresh tokens undefined", async () => {
     await request.post("/users/account").send({
       name: "TestUser",
@@ -97,7 +102,6 @@ describe("Testing the server", () => {
     expect(response.body.users.length).toEqual(2);
   });
 
-  // GET /users/me
   it("should test that GET /users/me returns (1) user corresponding to _id, (2) password field undefined, (3) refresh token defined", async () => {
     const newAccount = await request.post("/users/account").send(michael);
     const { _id, accessToken } = newAccount.body;
@@ -186,9 +190,39 @@ describe("Testing the server", () => {
 
   // IMPLEMENT TESTS FOR CHAT
 
-  // GET /chats
-  // Returns all chats in which you are a member
+  it("should test that GET /chats returns only chats in which you are a member", async () => {
+    // first, create three users
+    const user1 = await request.post("/users/account").send(pam);
+    const { accessToken } = user1.body;
+    const user2 = await request.post("/users/account").send(creed);
+    const { _id } = user2.body;
+    const user3 = await request.post("/users/account").send({
+      name: "TestUser",
+      email: "joe.blo3@gmail.com",
+      password: "password",
+    });
+    const user3AccessToken = user3.body.accessToken;
+    const message = {
+      members: [_id], // => user2 id
+      message: {
+        content: {
+          text: "Random",
+        },
+      },
+    };
+    // second, create a chat between first and second user
+    await request
+      .post("/chats")
+      .send(message)
+      .set({ Authorization: `Bearer ${accessToken}` }); // => user1 access token
+    // third, get chats using GET "/chats" endpoint as thid user
+    const response = await request
+      .get("/chats")
+      .set({ Authorization: `Bearer ${user3AccessToken}` }); // => user3 access token
+    expect(response.body.length).toBe(0);
+  });
 
+  //it("should test that POST /chats .... ? .... ");
   // POST /chats
   // If there is only one user in the members list: this endpoint should check if the request sender
   // already had an active chat with this user and return it if present.
@@ -197,11 +231,9 @@ describe("Testing the server", () => {
   // the members (including the request sender) are joining this newly created room (otherwise none of them
   // would be listening to incoming messages to this room).
 
-  // GET /chats/{id}
-  // Returns full message history for a specific chat
+  //it("should test that GET /chats/{ID} returns chat with corresponding id", async () => {})
 
-  // POST /chats/{id}/image
-  // Changes group chat picture. Request sender MUST be a member of the chat
+  //it("should test that POST /chats/{ID/image returns 404 if sender is not a member of the chat")
 
   // *********** //
 });
