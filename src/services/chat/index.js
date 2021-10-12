@@ -88,7 +88,7 @@ chatRouter.get("/:chatId", async (req, res, next) => {
 
 // POST /chats/{id}/image
 // Changes group chat picture. Request sender MUST be a member of the chat
-chatRouter.post(
+chatRouter.post( 
   "/:chatId/image",
   JWTAuthMiddleware,
   multer({ storage: mediaStorage }).single("image"),

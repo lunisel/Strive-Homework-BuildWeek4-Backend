@@ -202,6 +202,7 @@ describe("Testing the server", () => {
       password: "password",
     });
     const user3AccessToken = user3.body.accessToken;
+    // second, create a chat between first two users
     const message = {
       members: [_id], // => user2 id
       message: {
@@ -210,12 +211,11 @@ describe("Testing the server", () => {
         },
       },
     };
-    // second, create a chat between first and second user
     await request
       .post("/chats")
       .send(message)
       .set({ Authorization: `Bearer ${accessToken}` }); // => user1 access token
-    // third, get chats using GET "/chats" endpoint as thid user
+    // third, get chats using GET "/chats" endpoint as third user
     const response = await request
       .get("/chats")
       .set({ Authorization: `Bearer ${user3AccessToken}` }); // => user3 access token
@@ -231,9 +231,80 @@ describe("Testing the server", () => {
   // the members (including the request sender) are joining this newly created room (otherwise none of them
   // would be listening to incoming messages to this room).
 
-  //it("should test that GET /chats/{ID} returns chat with corresponding id", async () => {})
+  it("should test that GET /chats/{ID} returns chat with corresponding id", async () => {
+    // first, create two users
+    const user1 = await request.post("/users/account").send({
+      name: "TestUser",
+      email: "joe.blo4@gmail.com",
+      password: "password",
+    });
+    const { accessToken } = user1.body;
+    const user2 = await request.post("/users/account").send({
+      name: "TestUser",
+      email: "joe.blo5@gmail.com",
+      password: "password",
+    });
+    const { _id } = user2.body;
+    // second, create chat between users
+    const message = {
+      members: [_id], // => user2 id
+      message: {
+        content: {
+          text: "Random",
+        },
+      },
+    };
+    const newChat = await request
+      .post("/chats")
+      .send(message)
+      .set({ Authorization: `Bearer ${accessToken}` }); // => user1 access token
+    const chatId = newChat._id;
+    // third, get chat using GET "/chats/{ID}" endpoint
+    const response = await request.get("/chats/" + chatId);
+    expect(response._id).toEqual(chatId);
+  });
 
-  //it("should test that POST /chats/{ID/image returns 404 if sender is not a member of the chat")
+  it("should test that POST /chats/{ID}/image returns 404 if sender is not a member of the chat", async () => {
+    // first, create three users
+    const user1 = await request.post("/users/account").send({
+      name: "TestUser",
+      email: "joe.blo6@gmail.com",
+      password: "password",
+    });
+    const { accessToken } = user1.body;
+    const user2 = await request.post("/users/account").send({
+      name: "TestUser",
+      email: "joe.blo7@gmail.com",
+      password: "password",
+    });
+    const { _id } = user2.body;
+    const user3 = await request.post("/users/account").send({
+      name: "TestUser",
+      email: "joe.blo8@gmail.com",
+      password: "password",
+    });
+    const user3AccessToken = user3.body.accessToken;
+    // second, create chat between first two users
+    const message = {
+      members: [_id], // => user2 id
+      message: {
+        content: {
+          text: "Random",
+          image: "http://tny.im/q6k",
+        },
+      },
+    };
+    const newChat = await request
+      .post("/chats")
+      .send(message)
+      .set({ Authorization: `Bearer ${accessToken}` }); // => user1 access token
+    const chatId = newChat._id;
+    // third, get chats using GET "/chats" endpoint as third user
+    const response = await request
+      .get("/chats/" + chatId)
+      .set({ Authorization: `Bearer ${user3AccessToken}` });
+    expect(response.status).toBe(404);
+  });
 
   // *********** //
 });
