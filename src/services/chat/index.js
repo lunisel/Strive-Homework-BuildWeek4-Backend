@@ -1,12 +1,3 @@
-// GET /chats
-// Returns all chats in which you are a member
-
-// GET /chats/{id}
-// Returns full message history for a specific chat
-
-// POST /chats/{id}/image
-// Changes group chat picture. Request sender MUST be a member of the chat
-
 import express from "express";
 import multer from "multer";
 import { JWTAuthMiddleware } from "../../auth/index.js";
@@ -15,27 +6,27 @@ import ChatModel from "./schema.js";
 
 const chatRouter = express.Router();
 
+// Returns all chats in which you are a member
 chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const chats = await ChatModel.find()
-    const filteredChats = chats.filter(c=>c.members.includes(req.user._id))
-    res.send(filteredChats)
+    const chats = await ChatModel.find();
+    const filteredChats = chats.filter((c) => c.members.includes(req.user._id));
+    res.send(filteredChats);
     console.log("FETCHED CHAT HISTORY🙌");
   } catch (err) {
     next(err);
   }
 });
 
+// If there is only one user in the members list: this endpoint should check if the request sender
+// already had an active chat with this user and return it if present.
+
+// Otherwise, it creates a new chat among the request sender and the members listed in the request body.
+
+// When this happens, on the socket layer, this endpoint should also make sure that the sockets of all
+// the members (including the request sender) are joining this newly created room (otherwise none of them
+// would be listening to incoming messages to this room).
 chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
-  // If there is only one user in the members list: this endpoint should check if the request sender
-  // already had an active chat with this user and return it if present.
-
-  // Otherwise, it creates a new chat among the request sender and the members listed in the request body.
-
-  // When this happens, on the socket layer, this endpoint should also make sure that the sockets of all
-  // the members (including the request sender) are joining this newly created room (otherwise none of them
-  // would be listening to incoming messages to this room).
-
   try {
     const { message } = req.body;
     const membersArray = req.body.members;
@@ -51,9 +42,9 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       // If Chat is pre-existing add user message to its history
       const chatId = foundChat._id;
       const filter = { chatId };
-      const newHistory = [...foundChat.history, message]
+      const newHistory = [...foundChat.history, message];
       const update = { history: newHistory };
-      console.log(filter, update)
+      console.log(filter, update);
       const updatedChat = await ChatModel.findOneAndUpdate(filter, update, {
         returnOriginal: false,
       });
@@ -64,8 +55,8 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       // Else we create a new chat
       // ❗ WE NEED TO IMPLEMENT MEDIA UPLOAD CAPACITY
       const newChat = await ChatModel({
-        members: [...membersArray, myId], 
-        history: [message], 
+        members: [...membersArray, myId],
+        history: [message],
       });
       await newChat.save();
       console.log("NEW CHAT SAVED🙌");
@@ -73,10 +64,29 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       res.status(201).send({ _id: newChat._id });
     }
     // ❓ Additional method may be required to add a User to a pre-existing chat, let's check
-
   } catch (err) {
     next(err);
   }
 });
+
+// GET /chats/{id}
+// Returns full message history for a specific chat
+chatRouter.get("/:chatId", async (req, res, next) => {
+  try {
+    const chatId = req.params.chatId;
+    const chat = await ChatModel.findById(chatId);
+    if (chat) {
+      res.send(chat.history);
+      console.log("FOUND CHAT BY ID🙌");
+    } else {
+      res.status(404).send(`👻 Chat id ${chatId} was not found!`);
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /chats/{id}/image
+// Changes group chat picture. Request sender MUST be a member of the chat
 
 export default chatRouter;

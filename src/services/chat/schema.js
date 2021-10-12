@@ -39,4 +39,11 @@ const chatSchema = new Schema(
   { timestamps: true }
 );
 
+chatSchema.methods.toJSON = function () {
+  const userDoc = this;
+  const userObj = userDoc.toObject();
+  delete userObj.__v;
+  return userObj;
+};
+
 export default model("Chat", chatSchema);
