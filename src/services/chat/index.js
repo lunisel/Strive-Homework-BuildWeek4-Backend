@@ -88,5 +88,31 @@ chatRouter.get("/:chatId", async (req, res, next) => {
 
 // POST /chats/{id}/image
 // Changes group chat picture. Request sender MUST be a member of the chat
+chatRouter.post(
+  "/:chatId/image",
+  JWTAuthMiddleware,
+  multer({ storage: mediaStorage }).single("image"),
+  async (req, res, next) => {
+    try {
+      const { chatId } = req.params;
+      const chat = await ChatModel.findById(chatId);
+      if (chat.members.includes(req.user._id)) {
+        const filter = { _id: chatId };
+        const update = { ...req.body, image: req.file.path };
+        const updatedChat = await ChatModel.findOneAndUpdate(filter, update, {
+          returnOriginal: false,
+        });
+        await updatedChat.save();
+        res.send(updatedChat);
+        console.log("CHAT IMAGE CHANGE SUCCESSFUL🙌");
+      } else {
+        // members must include req.user._id
+        res.status(404).send(`👻 User not authorized to update chat with id ${userId}!`);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 export default chatRouter;
