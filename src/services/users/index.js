@@ -16,7 +16,7 @@ userRouter.get("/", async (req, res, next) => {
       const query = q2m(req.query);
       const { total, users } = await UserModel.findUsers(query);
       const safeUsers = users;
-      safeUsers.map((user) => (user.refreshToken = undefined));
+      // safeUsers.map((user) => (user.refreshToken = undefined));
       console.log(safeUsers);
       res.send({
         links: query.links("/users", total),
@@ -86,7 +86,7 @@ userRouter.get("/:userId", async (req, res, next) => {
     const userId = req.params.userId;
     const user = await UserModel.findById(userId);
     if (user) {
-      user.refreshToken = undefined;
+      // user.refreshToken = undefined;
       res.send(user);
       console.log("FOUND USER BY ID🙌");
     } else {

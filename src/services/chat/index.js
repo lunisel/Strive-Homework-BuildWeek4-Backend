@@ -34,41 +34,43 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
   // would be listening to incoming messages to this room).
 
   try {
-    // I can either click on a User to chat with them
+    const { message } = req.body;
+    const membersArray = req.body.members;
+    membersArray.sort(); // sort array of members so it is always the same
+    const myId = req.user._id;
+    message.sender = myId;
 
-    // Or I can click on a pre-existing Chat
+    // Check: is there already a chat between array of members + req.user._id?
+    const foundChat = await ChatModel.findOne({
+      members: [...membersArray, myId],
+    });
+    if (foundChat) {
+      // If Chat is pre-existing add user message to its history
+      const chatId = foundChat._id;
+      const filter = { chatId };
+      const newHistory = [...foundChat.history, message]
+      const update = { history: newHistory };
+      console.log(filter, update)
+      const updatedChat = await ChatModel.findOneAndUpdate(filter, update, {
+        returnOriginal: false,
+      });
+      await updatedChat.save();
+      res.send(updatedChat);
+      console.log("CHAT HISTORY UPDATED SUCCESSFULLY🙌");
+    } else {
+      // Else we create a new chat
+      // ❗ WE NEED TO IMPLEMENT MEDIA UPLOAD CAPACITY
+      const newChat = await ChatModel({
+        members: [...membersArray, myId], 
+        history: [message], 
+      });
+      await newChat.save();
+      console.log("NEW CHAT SAVED🙌");
+      console.log(newChat.history[0]);
+      res.status(201).send({ _id: newChat._id });
+    }
+    // ❓ Additional method may be required to add a User to a pre-existing chat, let's check
 
-    // If Chat is pre-existing I add my message to its history
-    // thus I would need the chat _id
-
-    // Else if chat does not exist yet I need to create a new chat
-    // return its _id
-    // and add my message to its history.
-
-    // ? Additional method may be required to add a User to a pre-existing chat, let's check
-
-    // we are sending a message using req.body
-
-    // message looks like this
-
-    // {
-    //   sender: req.user._id, // get this from JWTAuthMiddleware
-    //   content: {
-    //     text: "...",
-    //     media: "...", // if file attached include cloudinary link here, otherwise leave empty
-    //   },
-    // },
-
-    // when posting this message must be attached to a CHAT
-
-    // {
-    //   _id: will be created when posting
-    //   members: [ at minimum will include our ID and other person ID ], // so, we need to include person ID in our req.body as well
-    //   name: { not compulsory, we can rename chat at frontend },
-    //   history: { default: [], push new message each time posting },
-    //   image: { not compulsory, can be added at frontend, backend endpoint to change is POST /chats/{id}/image },
-    // },
-    
   } catch (err) {
     next(err);
   }

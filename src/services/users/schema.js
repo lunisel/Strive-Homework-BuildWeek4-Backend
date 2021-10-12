@@ -3,7 +3,7 @@
 // email: string
 // avatar?: string
 
-import mongoose from "mongoose"; 
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
 const { Schema, model } = mongoose;
@@ -13,22 +13,23 @@ const userSchema = new Schema(
     name: { type: String, required: true },
     email: { type: String, required: true },
     password: { type: String, required: true },
+    status: { type: String },
     avatar: { type: String },
     refreshToken: { type: String },
   },
   { timestamps: true }
-)
+);
 
-userSchema.static("findUsers", async function(query) {
-    const total = await this.countDocuments(query.criteria)
-    const users = await this.find(query.criteria, query.options.fields)
-        .limit(query.options.limit)
-        .skip(query.options.skip)
-        .sort(query.options.sort)
-    const safeUsers = users
-    
-    return { total, users }
-})
+userSchema.static("findUsers", async function (query) {
+  const total = await this.countDocuments(query.criteria);
+  const users = await this.find(query.criteria, query.options.fields)
+    .limit(query.options.limit)
+    .skip(query.options.skip)
+    .sort(query.options.sort);
+  const safeUsers = users;
+
+  return { total, users };
+});
 
 userSchema.pre("save", async function (next) {
   const newUser = this;
@@ -43,6 +44,7 @@ userSchema.methods.toJSON = function () {
   const userDoc = this;
   const userObj = userDoc.toObject();
   delete userObj.password;
+  delete userObj.refreshToken;
   delete userObj.__v;
   return userObj;
 };
