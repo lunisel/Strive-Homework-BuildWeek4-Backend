@@ -18,7 +18,7 @@ const chatRouter = express.Router();
 chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const chats = await ChatModel.find()
-    const filteredChats = chats.filter(c=>c.members.includes("req.user._id"))
+    const filteredChats = chats.filter(c=>c.members.includes(req.user._id))
     res.send(filteredChats)
     console.log("FETCHED CHAT HISTORY🙌");
   } catch (err) {
