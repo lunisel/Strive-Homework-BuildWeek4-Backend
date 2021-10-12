@@ -15,9 +15,12 @@ import ChatModel from "./schema.js";
 
 const chatRouter = express.Router();
 
-chatRouter.get("/", async (req, res, next) => {
+chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    console.log("Hi Chats👋");
+    const chats = await ChatModel.find()
+    const filteredChats = chats.filter(c=>c.members.includes("req.user._id"))
+    res.send(filteredChats)
+    console.log("FETCHED CHAT HISTORY🙌");
   } catch (err) {
     next(err);
   }
