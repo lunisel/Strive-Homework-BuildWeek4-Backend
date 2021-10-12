@@ -102,7 +102,7 @@ describe("Testing the server", () => {
     expect(response.body.users.length).toEqual(2);
   });
 
-  it("should test that GET /users/me returns (1) user corresponding to _id, (2) password field undefined, (3) refresh token defined", async () => {
+  it("should test that GET /users/me returns (1) user corresponding to _id, (2) password field undefined, (3) refresh token undefined", async () => {
     const newAccount = await request.post("/users/account").send(michael);
     const { _id, accessToken } = newAccount.body;
     const response = await request
@@ -110,7 +110,7 @@ describe("Testing the server", () => {
       .set({ Authorization: `Bearer ${accessToken}` });
     expect(response.body._id).toEqual(_id);
     expect(response.body.password).not.toBeDefined();
-    expect(response.body.refreshToken).toBeDefined();
+    expect(response.body.refreshToken).not.toBeDefined();
   });
 
   it("should test that GET /users/me returns 500 if wrong access token provided", async () => {
@@ -222,7 +222,7 @@ describe("Testing the server", () => {
     expect(response.body.length).toBe(0);
   });
 
-  //it("should test that POST /chats .... ? .... ");
+  //it("should test that POST /chats .... DOES WHAT ? .... ");
   // POST /chats
   // If there is only one user in the members list: this endpoint should check if the request sender
   // already had an active chat with this user and return it if present.
