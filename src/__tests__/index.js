@@ -164,7 +164,7 @@ describe("Testing the server", () => {
     const response = await request
       .post("/users/session")
       .send({ email: "info@WUPHF.com", password: "wr0ngPa5sword" });
-    expect(response.status).toBe(401); // ❗ FAILED, actually getting 500
+    expect(response.status).toBe(401); // ❗ Sometimes fails, 500
   });
 
   it("should test that DELETE /users/session returns 200", async () => {
@@ -303,7 +303,7 @@ describe("Testing the server", () => {
     const response = await request
       .get("/chats/" + chatId)
       .set({ Authorization: `Bearer ${user3AccessToken}` });
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(404); // ❗ Sometimes fails, 500
   });
 
   // *********** //

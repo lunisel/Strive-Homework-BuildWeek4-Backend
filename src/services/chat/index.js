@@ -9,9 +9,9 @@ const chatRouter = express.Router();
 // Returns all chats in which you are a member
 chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const chats = await ChatModel.find();
-    const filteredChats = chats.filter((c) => c.members.includes(req.user._id));
-    res.send(filteredChats);
+    const chats = await ChatModel.find({members: req.user._id.toString()});
+    //const filteredChats = chats.filter((c) => c.members.includes(req.user._id));
+    res.send(chats);
     console.log("FETCHED CHAT HISTORY🙌");
   } catch (err) {
     next(err);
@@ -38,7 +38,7 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
     const foundChat = await ChatModel.findOne({
       members: [...membersArray, myId],
     });
-    if (foundChat) {
+    if (foundChat) { // res send chat // with socket io
       // If Chat is pre-existing add user message to its history
       const chatId = foundChat._id;
       const filter = { chatId };
