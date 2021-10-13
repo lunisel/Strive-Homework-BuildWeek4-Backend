@@ -48,7 +48,7 @@ app.get("/online-users", (req, res) => {
 // ROUTERS GO HERE 
 
 app.use("/users", userRouter);
-// app.use('/chats', chatRouter)
+app.use('/chats', chatRouter)
 
 // *********** //
 

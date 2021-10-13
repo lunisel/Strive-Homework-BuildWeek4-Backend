@@ -30,19 +30,20 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const { message } = req.body;
     const membersArray = req.body.members;
-    membersArray.sort(); // sort array of members so it is always the same
-    const myId = req.user._id;
+    const myId = req.user._id; 
+    membersArray.push(myId)
     message.sender = myId;
+    membersArray.sort(); // sort array of members so it is always the same
 
     // Check: is there already a chat between array of members + req.user._id?
     const foundChat = await ChatModel.findOne({
-      members: [...membersArray, myId],
+      members: [...membersArray],
     });
     if (foundChat) { // res send chat // with socket io
       // If Chat is pre-existing add user message to its history
       const chatId = foundChat._id;
       const filter = { chatId };
-      const newHistory = [...foundChat.history, message];
+      const newHistory = [...foundChat.history, message]; 
       const update = { history: newHistory };
       console.log(filter, update);
       const updatedChat = await ChatModel.findOneAndUpdate(filter, update, {
@@ -55,7 +56,7 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       // Else we create a new chat
       // ❗ WE NEED TO IMPLEMENT MEDIA UPLOAD CAPACITY
       const newChat = await ChatModel({
-        members: [...membersArray, myId],
+        members: [...membersArray],
         history: [message],
       });
       await newChat.save();

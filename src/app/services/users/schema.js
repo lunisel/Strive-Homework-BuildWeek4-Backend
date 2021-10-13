@@ -14,7 +14,11 @@ const userSchema = new Schema(
     email: { type: String, required: true },
     password: { type: String, required: true },
     status: { type: String },
-    avatar: { type: String },
+    avatar: {
+      type: String,
+      default:
+        "http://tny.im/q74",
+    },
     refreshToken: { type: String },
   },
   { timestamps: true }
