@@ -1,5 +1,5 @@
 import supertest from "supertest";
-import server from "../server.js";
+import app from "../app/index.js"
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 
@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 
 dotenv.config();
 
-const request = supertest(server);
+const request = supertest(app);
 
 describe("Testing the testing environment", () => {
   it("should test that true is true", () => {
@@ -301,7 +301,7 @@ describe("Testing the server", () => {
     const chatId = newChat._id;
     // third, get chats using GET "/chats" endpoint as third user
     const response = await request
-      .get("/chats/" + chatId)
+      .get("/chats/" + chatId + "/image")
       .set({ Authorization: `Bearer ${user3AccessToken}` });
     expect(response.status).toBe(404); // ❗ Sometimes fails, 500
   });
