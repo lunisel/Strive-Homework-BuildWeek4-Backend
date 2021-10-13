@@ -2,14 +2,14 @@ import express from "express";
 import createHttpError from "http-errors";
 import q2m from "query-to-mongo";
 import multer from "multer";
-import { JWTAuthMiddleware } from "../../auth/index.js";
-import { generateTokens, refreshTokens } from "../../auth/tools.js";
-import { mediaStorage } from "../../utils/mediaStorage.js";
+import { JWTAuthMiddleware } from "../../../auth/index.js";
+import { generateTokens, refreshTokens } from "../../../auth/tools.js";
+import { mediaStorage } from "../../../utils/mediaStorage.js"; 
 import UserModel from "./schema.js";
 
 const userRouter = express.Router();
 
-// Search users by username or email.
+// Search users by username or email. 
 userRouter.get("/", async (req, res, next) => {
   try {
     if (req.query.name !== undefined || req.query.email !== undefined) {

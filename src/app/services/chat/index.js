@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
-import { JWTAuthMiddleware } from "../../auth/index.js";
-import { mediaStorage } from "../../utils/mediaStorage.js";
+import { JWTAuthMiddleware } from "../../../auth/index.js";
+import { mediaStorage } from "../../../utils/mediaStorage.js";
 import ChatModel from "./schema.js";
 
 const chatRouter = express.Router();
