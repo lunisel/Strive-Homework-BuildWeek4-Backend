@@ -9,7 +9,9 @@ const chatRouter = express.Router();
 // Returns all chats in which you are a member
 chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const chats = await ChatModel.find({members: req.user._id.toString()}).populate("members", {name: 1, avatar: 1});
+    const chats = await ChatModel.find({
+      members: req.user._id.toString(),
+    }).populate("members", { name: 1, avatar: 1 });
 
     //sockets[req.user._id.toString()].join(chats.map(c => c._id.toString()))
 
@@ -33,8 +35,8 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const { message } = req.body;
     const membersArray = req.body.members;
-    const myId = req.user._id; 
-    membersArray.push(myId)
+    const myId = req.user._id;
+    membersArray.push(myId);
     message.sender = myId;
     membersArray.sort(); // sort array of members so it is always the same
 
@@ -42,11 +44,12 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
     const foundChat = await ChatModel.findOne({
       members: [...membersArray],
     });
-    if (foundChat) { // res send chat // with socket io
+    if (foundChat) {
+      // res send chat // with socket io
       // If Chat is pre-existing add user message to its history
       const chatId = foundChat._id;
       const filter = { chatId };
-      const newHistory = [...foundChat.history, message]; 
+      const newHistory = [...foundChat.history, message];
       const update = { history: newHistory };
       const updatedChat = await ChatModel.findOneAndUpdate(filter, update, {
         returnOriginal: false,
@@ -54,7 +57,9 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       await updatedChat.save();
       res.send(updatedChat);
       console.log("🔸UPDATED CHAT HISTORY BY TOKEN🙌");
-      console.log(`👩_SENDER_ID_${req.user._id}_SAID:"${message.content.text}"`)
+      console.log(
+        `👩_SENDER_ID_${req.user._id}_SAID:"${message.content.text}"`
+      );
     } else {
       // Else we create a new chat
       // ❗ WE NEED TO IMPLEMENT MEDIA UPLOAD CAPACITY
@@ -64,10 +69,38 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       });
       await newChat.save();
       console.log("🔸NEW CHAT SAVED BY TOKEN🙌");
-      console.log(`👩_SENDER_ID_${req.user._id}_SAID:"${message.content.text}"`)
+      console.log(
+        `👩_SENDER_ID_${req.user._id}_SAID:"${message.content.text}"`
+      );
       res.status(201).send({ _id: newChat._id });
     }
     // ❓ Additional method may be required to add a User to a pre-existing chat, let's check
+  } catch (err) {
+    next(err);
+  }
+});
+
+chatRouter.post("/:userId/openchat", JWTAuthMiddleware, async (req, res, next) => {
+  try {
+    const userId = req.params.userId
+    let membersArray = [userId, req.user._id.toString()] 
+    membersArray.sort()
+    console.log(membersArray)
+    const foundChat = await ChatModel.findOne({
+      members: membersArray,
+    });
+    console.log(!foundChat)
+    if (!foundChat) {
+      const newChat = await ChatModel({members: membersArray, history:[]})
+      await newChat.save()
+      console.log("🔸NEW CHAT OPENED BETWEEN TWO USERS BY TOKEN AND ID🙌");
+      console.log(
+        `👩_SENDER_ID_${req.user._id}_👩_RECEIVER_ID_${userId}"`
+      );
+      res.status(201).send({ _id: newChat._id });
+    } else {
+      res.send("👻 CHAT ALREADY EXISTS BETWEEN THESE USERS")
+    }
   } catch (err) {
     next(err);
   }
@@ -92,7 +125,7 @@ chatRouter.get("/:chatId", async (req, res, next) => {
 
 // POST /chats/{id}/image
 // Changes group chat picture. Request sender MUST be a member of the chat
-chatRouter.post( 
+chatRouter.post(
   "/:chatId/image",
   JWTAuthMiddleware,
   multer({ storage: mediaStorage }).single("image"),
@@ -111,7 +144,9 @@ chatRouter.post(
         console.log("UPDATED CHAT IMAGE BY TOKEN🙌");
       } else {
         // members must include req.user._id
-        res.status(404).send(`👻 User not authorized to update chat with id ${userId}!`);
+        res
+          .status(404)
+          .send(`👻 User not authorized to update chat with id ${userId}!`);
       }
     } catch (error) {
       next(error);
