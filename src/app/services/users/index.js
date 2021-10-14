@@ -15,16 +15,16 @@ userRouter.get("/", async (req, res, next) => {
     if (req.query.name !== undefined || req.query.email !== undefined) {
       const query = q2m(req.query);
       const { total, users } = await UserModel.findUsers(query);
-      const safeUsers = users;
+      // const safeUsers = users;
       // safeUsers.map((user) => (user.refreshToken = undefined));
-      console.log(safeUsers);
+      // console.log(safeUsers);
       res.send({
         links: query.links("/users", total),
         total,
         users,
         pageTotal: Math.ceil(total / query.options.limit),
       });
-      console.log("USERS SENT🙌");
+      console.log("🔸USERS FETCHED BY QUERY🙌");
     } else {
       res.status(400).send("👻 Name or email must be queried!");
     }
@@ -37,7 +37,7 @@ userRouter.get("/", async (req, res, next) => {
 userRouter.get("/me", JWTAuthMiddleware, async (req, res, next) => {
   try {
     res.send(req.user);
-    console.log("USER SENT🙌");
+    console.log("🔸USER FETCHED BY TOKEN🙌");
   } catch (error) {
     next(error);
   }
@@ -53,7 +53,7 @@ userRouter.put("/me", JWTAuthMiddleware, async (req, res, next) => {
     });
     await updatedUser.save();
     res.send(updatedUser);
-    console.log("USER EDIT SUCCESSFUL🙌");
+    console.log("🔸USER EDITED BY TOKEN🙌");
   } catch (error) {
     next(error);
   }
@@ -73,7 +73,7 @@ userRouter.post(
       });
       await updatedUser.save();
       res.send(updatedUser);
-      console.log("PROFILE AVATAR CHANGE SUCCESSFUL🙌");
+      console.log("🔸USER AVATAR EDITED BY TOKEN🙌");
     } catch (error) {
       next(error);
     }
@@ -88,7 +88,7 @@ userRouter.get("/:userId", async (req, res, next) => {
     if (user) {
       // user.refreshToken = undefined;
       res.send(user);
-      console.log("FOUND USER BY ID🙌");
+      console.log("🔸FETCHED USER BY ID🙌");
     } else {
       res.status(404).send(`👻 User id ${userId} was not found!`);
       //next(createHttpError(404, `👻 User id ${userId} not found`));
@@ -105,7 +105,7 @@ userRouter.post("/account", async (req, res, next) => {
     const users = await UserModel.find();
     if (users.findIndex((u) => u.email === newUser.email) === -1) {
       const { _id } = await newUser.save();
-      console.log("NEW USER SAVED🙌");
+      console.log("🔸NEW USER REGISTERED🙌");
       if (newUser) {
         const { accessToken, refreshToken } = await generateTokens(newUser);
         res.status(201).send({ _id, accessToken, refreshToken });
@@ -126,7 +126,7 @@ userRouter.post("/session", async (req, res, next) => {
     if (user !== null) {
       const { accessToken, refreshToken } = await generateTokens(user);
       res.send({ accessToken, refreshToken });
-      console.log("USER LOGGED IN🙌");
+      console.log("🔸USER LOGGED IN BY EMAIL, PASSWORD🙌");
     } else {
       res.status(401).send("👻 Something's wrong with your credentials!");
       //next(createHttpError(401, "👻 Something's wrong with your credentials"));
@@ -143,7 +143,7 @@ userRouter.delete("/session", JWTAuthMiddleware, async (req, res, next) => {
     req.user.refreshToken = null;
     await req.user.save();
     res.send();
-    console.log("USER LOGGED OUT🙌");
+    console.log("🔸USER LOGGED OUT BY TOKEN🙌");
   } catch (err) {
     next(err);
   }
@@ -157,7 +157,7 @@ userRouter.post("/session/refresh", async (req, res, next) => {
       actualRefreshToken
     );
     res.send({ accessToken, refreshToken });
-    console.log("SESSION REFRESHED🙌");
+    console.log("🔸SESSION REFRESHED BY TOKEN🙌");
   } catch (err) {
     next(err);
   }

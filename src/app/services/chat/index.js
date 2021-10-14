@@ -12,7 +12,7 @@ chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
     const chats = await ChatModel.find({members: req.user._id.toString()});
     //const filteredChats = chats.filter((c) => c.members.includes(req.user._id));
     res.send(chats);
-    console.log("FETCHED CHAT HISTORY🙌");
+    console.log("🔸FETCHED CHAT HISTORY BY TOKEN🙌");
   } catch (err) {
     next(err);
   }
@@ -45,13 +45,13 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       const filter = { chatId };
       const newHistory = [...foundChat.history, message]; 
       const update = { history: newHistory };
-      console.log(filter, update);
       const updatedChat = await ChatModel.findOneAndUpdate(filter, update, {
         returnOriginal: false,
       });
       await updatedChat.save();
       res.send(updatedChat);
-      console.log("CHAT HISTORY UPDATED SUCCESSFULLY🙌");
+      console.log("🔸UPDATED CHAT HISTORY BY TOKEN🙌");
+      console.log(`👩_SENDER_ID_${req.user._id}_SAID:"${message.content.text}"`)
     } else {
       // Else we create a new chat
       // ❗ WE NEED TO IMPLEMENT MEDIA UPLOAD CAPACITY
@@ -60,8 +60,8 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
         history: [message],
       });
       await newChat.save();
-      console.log("NEW CHAT SAVED🙌");
-      console.log(newChat.history[0]);
+      console.log("🔸NEW CHAT SAVED BY TOKEN🙌");
+      console.log(`👩_SENDER_ID_${req.user._id}_SAID:"${message.content.text}"`)
       res.status(201).send({ _id: newChat._id });
     }
     // ❓ Additional method may be required to add a User to a pre-existing chat, let's check
@@ -78,7 +78,7 @@ chatRouter.get("/:chatId", async (req, res, next) => {
     const chat = await ChatModel.findById(chatId);
     if (chat) {
       res.send(chat.history);
-      console.log("FOUND CHAT BY ID🙌");
+      console.log("FETCHED CHAT BY ID🙌");
     } else {
       res.status(404).send(`👻 Chat id ${chatId} was not found!`);
     }
@@ -105,7 +105,7 @@ chatRouter.post(
         });
         await updatedChat.save();
         res.send(updatedChat);
-        console.log("CHAT IMAGE CHANGE SUCCESSFUL🙌");
+        console.log("UPDATED CHAT IMAGE BY TOKEN🙌");
       } else {
         // members must include req.user._id
         res.status(404).send(`👻 User not authorized to update chat with id ${userId}!`);

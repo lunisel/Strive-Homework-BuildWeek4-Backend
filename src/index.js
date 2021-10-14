@@ -12,11 +12,11 @@ const io = new Server(httpServer, { allowEIO3: true });
 io.on("connection", (socket) => {
   console.log("🚀 _Connected to socket-io!_" + socket.id);
 
-  socket.on("joinRooms", ({ id }) => {
-    socket.join(id);
+  socket.on("joinRooms", async ({ id }) => {
+    await socket.join(id);
     console.log("Connected in rooms", socket.rooms);
     // shared.onlineUsers.push({ username, id: socket.id, room });
-    socket.emit("joinedRoom");
+    socket.emit("joinedRoom", { rooms: socket.rooms} );
     // socket.broadcast.emit("newConnection");
   });
 
