@@ -4,12 +4,12 @@ import q2m from "query-to-mongo";
 import multer from "multer";
 import { JWTAuthMiddleware } from "../../../auth/index.js";
 import { generateTokens, refreshTokens } from "../../../auth/tools.js";
-import { mediaStorage } from "../../../utils/mediaStorage.js"; 
+import { mediaStorage } from "../../../utils/mediaStorage.js";
 import UserModel from "./schema.js";
 
 const userRouter = express.Router();
 
-// Search users by username or email. 
+// Search users by username or email.
 userRouter.get("/", async (req, res, next) => {
   try {
     if (req.query.name !== undefined || req.query.email !== undefined) {
@@ -58,6 +58,21 @@ userRouter.put("/me", JWTAuthMiddleware, async (req, res, next) => {
     next(error);
   }
 });
+
+// userRouter.put("/me/password", JWTAuthMiddleware, async (req, res, next) => {
+//   try {
+//     const filter = { _id: req.user._id };
+//     const update = { password: req.body.password };
+//     const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+//       returnOriginal: false,
+//     });
+//     await updatedUser.savePassword();
+//     res.send(updatedUser);
+//     console.log("🔸PASSWORD EDITED BY TOKEN🙌");
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 // Changes profile avatar
 userRouter.post(
