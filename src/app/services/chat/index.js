@@ -9,7 +9,10 @@ const chatRouter = express.Router();
 // Returns all chats in which you are a member
 chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const chats = await ChatModel.find({members: req.user._id.toString()});
+    const chats = await ChatModel.find({members: req.user._id.toString()}).populate("members", {name: 1, avatar: 1});
+
+    //sockets[req.user._id.toString()].join(chats.map(c => c._id.toString()))
+
     //const filteredChats = chats.filter((c) => c.members.includes(req.user._id));
     res.send(chats);
     console.log("🔸FETCHED CHAT HISTORY BY TOKEN🙌");

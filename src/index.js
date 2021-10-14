@@ -9,8 +9,13 @@ const httpServer = createServer(app);
 // initializing our socket.io server....
 const io = new Server(httpServer, { allowEIO3: true });
 
+//export const sockets = {}
+
 io.on("connection", (socket) => {
   console.log("🚀 _Connected to socket-io!_" + socket.id);
+
+  //const { _id: userId } = jwt.verify(socket.request.headers.authorization, process.env.JWT_SECRET)
+  //sockets[userId] = socket
 
   socket.on("joinRooms", async ({ id }) => {
     await socket.join(id);
