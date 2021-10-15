@@ -25,7 +25,6 @@ chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
 
 chatRouter.get("/:userId/check", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const myId = req.user._id;
     let membersArray = []
     membersArray.push(req.user._id); 
     membersArray.push(req.params.userId);
@@ -35,7 +34,7 @@ chatRouter.get("/:userId/check", JWTAuthMiddleware, async (req, res, next) => {
       members: [...membersArray],
     });
     if (foundChat) {
-      res.send({ _id: foundChat._id })
+      res.send(foundChat)
     } else {
       res.status(404).send("👻NO CHAT EXISTS BETWEEN THESE USERS")
     }

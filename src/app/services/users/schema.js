@@ -16,8 +16,7 @@ const userSchema = new Schema(
     status: { type: String },
     avatar: {
       type: String,
-      default:
-        "http://tny.im/q74",
+      default: "http://tny.im/q74",
     },
     refreshToken: { type: String },
   },
@@ -25,13 +24,23 @@ const userSchema = new Schema(
 );
 
 userSchema.static("findUsers", async function (query) {
-  const total = await this.countDocuments(query.criteria);
-  const users = await this.find(query.criteria, query.options.fields)
+  const criteria = query.criteria;
+  const name = criteria.name
+  const email = criteria.email
+  console.log(criteria);
+  // cannot remember how to make this case insensitive etc.......
+  const searchTerm =
+    criteria.name !== undefined
+      ? { name }
+      : { email };
+  console.log(searchTerm);
+  // var thename = "Andrew";
+  // db.collection.find({ name: /^thename$/i });
+  const total = await this.countDocuments(searchTerm);
+  const users = await this.find(searchTerm, query.options.fields)
     .limit(query.options.limit)
     .skip(query.options.skip)
     .sort(query.options.sort);
-  const safeUsers = users;
-
   return { total, users };
 });
 
