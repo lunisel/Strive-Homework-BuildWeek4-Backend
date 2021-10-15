@@ -99,7 +99,7 @@ chatRouter.post("/:userId/openchat", JWTAuthMiddleware, async (req, res, next) =
       );
       res.status(201).send({ _id: newChat._id });
     } else {
-      res.send("👻 CHAT ALREADY EXISTS BETWEEN THESE USERS")
+      res.status(409).send("👻 CHAT ALREADY EXISTS BETWEEN THESE USERS")
     }
   } catch (err) {
     next(err);
