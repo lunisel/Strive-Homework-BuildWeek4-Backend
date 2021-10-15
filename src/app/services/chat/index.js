@@ -23,6 +23,27 @@ chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
   }
 });
 
+chatRouter.get("/:userId/check", JWTAuthMiddleware, async (req, res, next) => {
+  try {
+    const myId = req.user._id;
+    let membersArray = []
+    membersArray.push(req.user._id); 
+    membersArray.push(req.params.userId);
+    membersArray.sort()
+    console.log(membersArray)
+    const foundChat = await ChatModel.findOne({
+      members: [...membersArray],
+    });
+    if (foundChat) {
+      res.send({ _id: foundChat._id })
+    } else {
+      res.status(404).send("👻NO CHAT EXISTS BETWEEN THESE USERS")
+    }
+  } catch (err) {
+    next(err)
+  }
+})
+
 // If there is only one user in the members list: this endpoint should check if the request sender
 // already had an active chat with this user and return it if present.
 
