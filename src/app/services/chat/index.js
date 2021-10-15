@@ -25,23 +25,23 @@ chatRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
 
 chatRouter.get("/:userId/check", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    let membersArray = []
-    membersArray.push(req.user._id); 
+    let membersArray = [];
+    membersArray.push(req.user._id);
     membersArray.push(req.params.userId);
-    membersArray.sort()
-    console.log(membersArray)
+    membersArray.sort();
+    console.log(membersArray);
     const foundChat = await ChatModel.findOne({
       members: [...membersArray],
     });
     if (foundChat) {
-      res.send(foundChat)
+      res.send(foundChat);
     } else {
-      res.status(404).send("👻NO CHAT EXISTS BETWEEN THESE USERS")
+      res.status(404).send("👻NO CHAT EXISTS BETWEEN THESE USERS");
     }
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 // If there is only one user in the members list: this endpoint should check if the request sender
 // already had an active chat with this user and return it if present.
@@ -54,6 +54,8 @@ chatRouter.get("/:userId/check", JWTAuthMiddleware, async (req, res, next) => {
 chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const { message } = req.body;
+    console.log("MESSAGE", message);
+    console.log("REQ BODY", req.body);
     const membersArray = req.body.members;
     const myId = req.user._id;
     membersArray.push(myId);
@@ -69,6 +71,8 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
       // If Chat is pre-existing add user message to its history
       const chatId = foundChat._id;
       const filter = { chatId };
+      console.log(foundChat);
+      console.log("HISTORY", foundChat.history, "ID", chatId);
       const newHistory = [...foundChat.history, message];
       const update = { history: newHistory };
       const updatedChat = await ChatModel.findOneAndUpdate(filter, update, {
@@ -100,31 +104,36 @@ chatRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
   }
 });
 
-chatRouter.post("/:userId/openchat", JWTAuthMiddleware, async (req, res, next) => {
-  try {
-    const userId = req.params.userId
-    let membersArray = [userId, req.user._id.toString()] 
-    membersArray.sort()
-    console.log(membersArray)
-    const foundChat = await ChatModel.findOne({
-      members: membersArray,
-    });
-    console.log(!foundChat)
-    if (!foundChat) {
-      const newChat = await ChatModel({members: membersArray, history:[]})
-      await newChat.save()
-      console.log("🔸NEW CHAT OPENED BETWEEN TWO USERS BY TOKEN AND ID🙌");
-      console.log(
-        `👩_SENDER_ID_${req.user._id}_👩_RECEIVER_ID_${userId}"`
-      );
-      res.status(201).send({ _id: newChat._id });
-    } else {
-      res.status(409).send("👻 CHAT ALREADY EXISTS BETWEEN THESE USERS")
-    }
-  } catch (err) {
-    next(err);
-  }
-});
+// `chatRouter.post(
+//   "/:userId/openchat",
+//   JWTAuthMiddleware,
+//   async (req, res, next) => {
+//     try {
+//       const userId = req.params.userId;
+//       let membersArray = [userId, req.user._id.toString()];
+//       membersArray.sort();
+//       console.log(membersArray);
+//       const foundChat = await ChatModel.findOne({
+//         members: membersArray,
+//       });
+//       console.log(!foundChat);
+//       if (!foundChat) {
+//         const newChat = await ChatModel({
+//           members: membersArray,
+//           history: [{ content: { text: "This is our first message" } }],
+//         });
+//         await newChat.save();
+//         console.log("🔸NEW CHAT OPENED BETWEEN TWO USERS BY TOKEN AND ID🙌");
+//         console.log(`👩_SENDER_ID_${req.user._id}_👩_RECEIVER_ID_${userId}"`);
+//         res.status(201).send({ _id: newChat._id });
+//       } else {
+//         res.status(409).send("👻 CHAT ALREADY EXISTS BETWEEN THESE USERS");
+//       }
+//     } catch (err) {
+//       next(err);
+//     }
+//   }
+// );`
 
 // GET /chats/{id}
 // Returns full message history for a specific chat
